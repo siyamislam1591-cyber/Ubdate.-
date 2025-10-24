@@ -29,8 +29,8 @@
             kickSuccess: "Kicked successfully! 🚀",
             kickFail: "Oops! Couldn't kick this member 🤣",
             syntaxError: "⚠️ Wrong command syntax! Tag users or reply to kick.",
-            funnyDialogues: "ওহ হ্যাঁ… তোমার গ্রুপ টাইম শেষ! 😏\nAlert! তুমি আউট হতে যাচ্ছো! 🏃‍♂️😜\nWarning! কিক coming… dodge করতে পারলে dodge করো! 😂",
-            warningMsg: "⚠️ {name},ভালো থাকিস , আবার কোনোদিন দেখা হবে !\nতোর কাছে 10 সেকেন্ড সময় আছে... ⏳"
+            funnyDialogues: "awwwwww tmi chudling pong 🥹🤲\nAlert! byeeeee 🫩🫦 🏃‍♂️😜\nWarning! কিক coming… dodge করতে পারলে dodge করো! 😂",
+            warningMsg: "⚠️ {name},ভালো থাকিস , আবার কোনোদিন দেখা হবে !\nতোর কাছে 5 সেকেন্ড সময় আছে... ⏳"
         }
     },
 
@@ -70,7 +70,7 @@
                     });
 
                     // Wait 10 seconds
-                    await new Promise(res => setTimeout(res, 10000));
+                    await new Promise(res => setTimeout(res, 50000));
 
                     // Kick the user
                     await api.removeUserFromGroup(uid, event.threadID);
