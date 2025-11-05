@@ -3,7 +3,7 @@ module.exports = {
   config: {
     name: "joinleave",
     version: "1.2",
-    author: "TANJIL & ChatGPT",
+    author: "Xalman & ChatGPT",
     countDown: 5,
     role: 0,
     shortDescription: "Welcome and leave detector",
@@ -42,7 +42,7 @@ module.exports = {
           }
         } catch (e) {}
 
-        const msg = `🛑 User Left The Group\n👤 Name: ${name}\n🆔 UID: ${leftId}\n📤 লিভ ফ্রম দা গ্রুপ`;
+        const msg = `👤 Name: ${name}\n🆔 UID: ${leftId}\n📤 chudling pong from the group`;
         return api.sendMessage(msg, threadID);
       }
     } catch (err) {
