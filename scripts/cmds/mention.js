@@ -28,7 +28,7 @@ module.exports = {
 
   onChat: async ({ event, api }) => {
     const mentionList = Object.entries(event.mentions || {});
-    const targetUIDs = ["61582662637419", "100081088184521"]; // 👈 Use an array here
+    const targetUIDs = "100081088184521" 
 
     // Check if at least one mentioned user matches target UIDs
     const mentionedIDs = mentionList.map(([id]) => id);
