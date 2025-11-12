@@ -6,17 +6,30 @@ const moment = require('moment-timezone');
 module.exports = {
   config: {
     name: "uptime",
-    version: "3.7",
+    version: "3.9",
     author: "Styled by nx (Cyber-Aesthetic Hybrid)",
     role: 0,
-    shortDescription: "Cyber aesthetic uptime display",
-    longDescription: "Shows uptime, system, and bot stats with subtle hanka-style emojis",
+    shortDescription: "Cyber aesthetic uptime display with loading",
+    longDescription: "Shows uptime, system, and bot stats with loading animation",
     category: "system",
     aliases: ["cyup", "cyberup", "statusx"],
   },
 
   onStart: async function ({ api, event }) {
     try {
+      // Function to simulate loading
+      const sendLoading = async () => {
+        for (let i = 1; i <= 100; i += 10) {
+          const loadingBar = "█".repeat(Math.floor(i / 10)) + "░".repeat(10 - Math.floor(i / 10));
+          const text = `🔄 Loading: [${loadingBar}] ${i}%`;
+          await api.sendMessage(text, event.threadID); // always send new message, safe for Messenger
+          await new Promise(resolve => setTimeout(resolve, 150)); // 150ms per step
+        }
+      };
+
+      await sendLoading();
+
+      // Uptime & system info
       const uptime = process.uptime();
       const days = Math.floor(uptime / (3600 * 24));
       const hours = Math.floor((uptime % (3600 * 24)) / 3600);
@@ -45,25 +58,22 @@ module.exports = {
       const bdTime = moment().tz("Asia/Dhaka");
 
       const msg = `
-═══════════════════════════════════
-🟢 SYSTEM ONLINE // v3.7
-═══════════════════════════════════
-
+═══════════════════════
+🟢 SYSTEM ONLINE // v3.9
+══════════════════
 𝐂𝐨𝐫𝐞 𝐒𝐭𝐚𝐭𝐮𝐬
 ⏳ Uptime: ${days}d ${hours}h ${minutes}m
-⚡ Latency: ${Date.now() - event.timestamp}ms
+⚡ Latency: ${Date.now() - (event.timestamp || Date.now())}ms
 📦 Commands: ${totalCommands}
 ✅ Stability: Stable
-───────────────────────────────
-
+────────────────────
 𝐒𝐲𝐬𝐭𝐞𝐦 𝐈𝐧𝐟𝐨𝐫𝐦𝐚𝐭𝐢𝐨𝐧
 🪟 OS: ${platform.toUpperCase()} (${arch})
 🧠 CPU: ${cpuModel}
 💾 RAM: ${(process.memoryUsage().rss / (1024 * 1024)).toFixed(2)} MB
 🗄 Storage: ${usedMem}GB / ${totalMem}GB
 🛠 CPU Load: ${cpuLoad}%
-───────────────────────────────
-
+────────────────────
 𝐁𝐨𝐭 𝐈𝐧𝐠𝐢𝐧𝐞 𝐃𝐚𝐭𝐚
 📂 Directory: ${path.basename(__dirname)}
 ⚙️ Node.js: ${process.version}
@@ -71,38 +81,22 @@ module.exports = {
 📶 Signal: ${signal} 100%
 🌡 Temperature: ${temp}°C
 🔒 Network: Encrypted | AES-256 Secure
-───────────────────────────────
-
+────────────────────
 𝐎𝐰𝐧𝐞𝐫 𝐃𝐚𝐭𝐚
 👑 Name: Negative Xalman (nx)
 💬 Messenger: https://m.me/nx210.2.0.is.back
-───────────────────────────────
-
+───────────────────
 𝐓𝐢𝐦𝐞 𝐒𝐲𝐧𝐞 𝐁𝐚𝐧𝐠𝐥𝐚𝐝𝐞𝐬𝐡
 📅 Date: ${bdTime.format('dddd, MMMM Do YYYY')}
 🕒 Time: ${bdTime.format('hh:mm:ss A')} (Asia/Dhaka)
-───────────────────────────────
-
-𝐒𝐲𝐬𝐭𝐞𝐦 𝐒𝐭𝐚𝐭𝐮𝐬 𝐑𝐞𝐩𝐨𝐫𝐭
-🟢 Core Engine: ONLINE
-🛡 Firewall: ACTIVE
-🔗 Neural Link: STABLE
-🤖 AI Threads: SYNCHRONIZED
-───────────────────────────────
-
-𝐆𝐨𝐚𝐭 𝐁𝐨𝐭 𝐂𝐨𝐫𝐞// 𝐁𝐮𝐢𝐥𝐝
-💎 Developer: MÁYBÉ NX
-⚡ Power Source: Quantum Node Reactor
-───────────────────────────────
-
+─────────────────────
 SYSTEM RUNNING // NO ERRORS DETECTED
-═══════════════════════════════════
 `;
 
-      api.sendMessage(msg, event.threadID);
+      await api.sendMessage(msg, event.threadID);
     } catch (err) {
       console.error("Uptime error:", err);
-      api.sendMessage("[SYSTEM ERROR] Unable to fetch core diagnostics.", event.threadID);
+      // ❌ Silent fail, kono message user ke dekhabe na
     }
   }
 };
