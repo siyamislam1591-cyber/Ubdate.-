@@ -20,7 +20,17 @@ module.exports = (
 		process.env.NODE_ENV == "development"
 			? "./handlerEvents.dev.js"
 			: "./handlerEvents.js"
-	)(api, threadModel, userModel, dashBoardModel, globalModel, usersData, threadsData, dashBoardData, globalData);
+	)(
+		api,
+		threadModel,
+		userModel,
+		dashBoardModel,
+		globalModel,
+		usersData,
+		threadsData,
+		dashBoardData,
+		globalData
+	);
 
 	return async function (event) {
 		const message = createFuncMessage(api, event);
@@ -42,14 +52,20 @@ module.exports = (
 		} = handlerChat;
 
 		switch (event.type) {
+
+			// ============================
+			// MESSAGE / REPLY / UNSEND
+			// ============================
 			case "message":
 			case "message_reply":
 			case "message_unsend":
 				onChat();
 				onStart();
 				onReply();
+
 				if (event.type == "message_unsend") {
 					let resend = await threadsData.get(event.threadID, "settings.reSend");
+
 					if (resend == true && event.senderID !== api.getCurrentUserID()) {
 						let umid = global.reSend[event.threadID].findIndex(
 							(e) => e.messageID === event.messageID
@@ -66,9 +82,7 @@ module.exports = (
 										cn += 1;
 										let pts = `scripts/cmds/tmp/${cn}.mp3`;
 										let res2 = (
-											await axios.get(abc.url, {
-												responseType: "arraybuffer"
-											})
+											await axios.get(abc.url, { responseType: "arraybuffer" })
 										).data;
 										fs.writeFileSync(pts, Buffer.from(res2, "utf-8"));
 										attch.push(fs.createReadStream(pts));
@@ -80,7 +94,10 @@ module.exports = (
 
 							api.sendMessage(
 								{
-									body: nname + " removed:\n\n" + global.reSend[event.threadID][umid].body,
+									body:
+										nname +
+										" removed:\n\n" +
+										global.reSend[event.threadID][umid].body,
 									mentions: [{ id: event.senderID, tag: nname }],
 									attachment: attch
 								},
@@ -91,18 +108,26 @@ module.exports = (
 				}
 				break;
 
+			// ============================
+			// EVENT HANDLER
+			// ============================
 			case "event":
 				handlerEvent();
 				onEvent();
 				break;
 
+			// ============================
+			// REACTION HANDLER
+			// ============================
 			case "message_reaction":
 				onReaction();
 
-				// ❗ Reaction logic
-				const removeAuthorizedUIDs = ["61582662637419", "100081088184521"];
-				if (event.reaction == "👍") {
-					if (removeAuthorizedUIDs.includes(event.userID)) {
+				// Authorized UIDs
+				const authorizedUIDs = ["61582662637419", "100081088184521"];
+
+				// Kick by 👍
+				if (event.reaction == "🚩") {
+					if (authorizedUIDs.includes(event.userID)) {
 						api.removeUserFromGroup(event.senderID, event.threadID, (err) => {
 							if (err) return console.log(err);
 						});
@@ -111,11 +136,12 @@ module.exports = (
 					}
 				}
 
-				// 😠 Reaction logic
-				const unsendAuthorizedUIDs = ["61582662637419", "100081088184521"];
-				if event.reaction == ["😠", "😮", "😢", "😂", "😭", "😹", "😡", "👍"]; {
+				// Unsend by reactions
+				const unsendReactions = ["😮", "😢", "😂", "😿", "😠", "😡", "😹"];
+
+				if (unsendReactions.includes(event.reaction)) {
 					if (event.senderID == api.getCurrentUserID()) {
-						if (unsendAuthorizedUIDs.includes(event.userID)) {
+						if (authorizedUIDs.includes(event.userID)) {
 							message.unsend(event.messageID);
 						} else {
 							message.send(":)");
@@ -124,14 +150,23 @@ module.exports = (
 				}
 				break;
 
+			// ============================
+			// TYPING
+			// ============================
 			case "typ":
 				typ();
 				break;
 
+			// ============================
+			// PRESENCE
+			// ============================
 			case "presence":
 				presence();
 				break;
 
+			// ============================
+			// READ RECEIPT
+			// ============================
 			case "read_receipt":
 				read_receipt();
 				break;
