@@ -8,7 +8,7 @@ module.exports = {
     aliases: ["chud"],
     version: "2.9",
     author: "xalman",
-    countDown: 400,
+    countDown: 150,
     role: 0,
     shortDescription: "Poke with custom image",
     longDescription: "Generate a poke image with the mentioned user using a custom background.",
