@@ -1,50 +1,45 @@
-const { existsSync, mkdirSync } = require("fs");
 const axios = require("axios");
-const tinyurl = require('tinyurl');
+
+const mahmud = async () => {
+  const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/exe/main/baseApiUrl.json");
+  return base.data.mahmud;
+};
 
 module.exports = {
   config: {
     name: "prompt",
-    aliases: [],
-    version: "1.0",
-    author: "Vex_Kshitiz",
-    countDown: 5,
-    role: 0,
-    shortDescription: "Generate prompt for an image",
-    longDescription: "generate prompt for an image",
-    category: "image",
+    aliases: ["p"],
+    version: "1.7",
+    author: "MahMUD",
+    category: "ai",
     guide: {
-      en: "{p}prompt (reply to image)"
-    }
+      en: "{pn} reply with an image",
+    },
   },
 
-  onStart: async function ({ message, event, api }) {
-    api.setMessageReaction("🕐", event.messageID, (err) => {}, true);
-    const { type, messageReply } = event;
-    const { attachments, threadID } = messageReply || {};
+  onStart: async function ({ api, args, event }) {
+    const apiUrl = `${await mahmud()}/api/prompt`;
+    let prompt = args.join(" ") || "Describe this image";
 
-    if (type === "message_reply" && attachments) {
-      const [attachment] = attachments;
-      const { url, type: attachmentType } = attachment || {};
-
-      if (!attachment || attachmentType !== "photo") {
-        return message.reply("Reply to an image.");
-      }
-
+    if (event.type === "message_reply" && event.messageReply.attachments[0]?.type === "photo") {
       try {
-        const tinyUrl = await tinyurl.shorten(url);
-        const apiUrl = `https://prompt-gen-eight.vercel.app/kshitiz?url=${encodeURIComponent(tinyUrl)}`;
-        const response = await axios.get(apiUrl);
+        const response = await axios.post(apiUrl, {
+          imageUrl: event.messageReply.attachments[0].url,
+          prompt
+        }, {
+          headers: { "Content-Type": "application/json", "author": module.exports.config.author }
+        });
 
-        const { prompt } = response.data;
+        const reply = response.data.error || response.data.response || "No response";
+        api.sendMessage(reply, event.threadID, event.messageID);
+        return api.setMessageReaction("🪽", event.messageID, () => {}, true);
 
-        message.reply(prompt, threadID);
       } catch (error) {
-        console.error(error);
-        message.reply("❌ An error occurred while generating the prompt.");
+        api.sendMessage("moye moye🥹", event.threadID, event.messageID);
+        return api.setMessageReaction("❌", event.messageID, () => {}, true);
       }
-    } else {
-      message.reply("Please reply to an image.");
     }
+
+    api.sendMessage("Please reply with an image.", event.threadID, event.messageID);
   }
 };
