@@ -1,14 +1,14 @@
 const fs = require("fs-extra");
 const path = require("path");
 const { getPrefix } = global.utils;
-const { commands, aliases } = global.GoatBot;
+const { commands } = global.GoatBot;
 
 module.exports = {
   config: {
     name: "help2",
     aliases: ["h", "hp", "help2"],
-    version: "2.0",
-    author: "T A N J I L 🎀",
+    version: "3.0",
+    author: "T A N J I L 🎀 + Modified by ChatGPT",
     countDown: 1,
     role: 0,
     shortDescription: {
@@ -19,22 +19,18 @@ module.exports = {
     },
     category: "info",
     guide: {
-      en: "{pn} [empty | <page number> | <command name>]"
-        + "\n{pn} <command name> [-u | usage | -g | guide]: only show usage"
-        + "\n{pn} <command name> [-i | info]: only show info"
-        + "\n{pn} <command name> [-r | role]: only show role"
-        + "\n{pn} <command name> [-a | alias]: only show alias"
+      en: "{pn} [page number]\n{pn} <command name>"
     },
     priority: 1
   },
 
   onStart: async function ({ args, message, event }) {
     const prefix = await getPrefix(event.threadID);
-    const totalCommands = commands.size;
-    const botName = "bolbo na✨⃝٭";
+    const botName = "your baby ✨⃝٭";
     const ownerName = "NX🎀";
-    const perPage = 6;
+    const perPage = 60;
 
+    // PAGE LIST SYSTEM
     if (args.length === 0 || !isNaN(args[0])) {
       const page = parseInt(args[0]) || 1;
 
@@ -42,65 +38,47 @@ module.exports = {
         .filter(cmd => cmd.config.role <= 1)
         .sort((a, b) => a.config.name.localeCompare(b.config.name));
 
-      const totalPages = Math.ceil(allCommands.length / perPage);
+      const totalCommands = allCommands.length;
+      const totalPages = Math.ceil(totalCommands / perPage);
+
       const start = (page - 1) * perPage;
       const end = start + perPage;
 
+      let i = start;
+
       const pageCommands = allCommands.slice(start, end).map(cmd => {
-        const aliasesList = [...aliases.entries()]
-          .filter(([_, v]) => v === cmd.config.name)
-          .map(([k]) => k);
-        return `🔹 ${prefix}${cmd.config.name} (${cmd.config.category})\n   ✨ Aliases: ${aliasesList.join(", ") || "None"}`;
-      }).join("\n\n");
+        i++;
+        return `${i}. ${prefix}${cmd.config.name}`;
+      }).join("\n");
 
       return message.reply(
         `📘 𝑯𝑬𝑳𝑷 𝑴𝑬𝑵𝑼 (Page ${page}/${totalPages})\n\n`
         + pageCommands
         + `\n\n━━━━━━━━━━━━━━━━━━\n`
         + `🔢 Total Commands: ${totalCommands}\n`
-        + `📝 Prefix: ${prefix || "NoPrefix"}\n`
+        + `📝 Prefix: ${prefix}\n`
         + `👑 Owner: ${ownerName}\n`
         + `🤖 Bot Name: ${botName}`
       );
     }
 
-    const commandName = args[0].toLowerCase();
-    const cmd = commands.get(commandName) || commands.get(aliases.get(commandName));
+    // SINGLE COMMAND DETAILS VIEW
+    const name = args[0].toLowerCase();
+    const cmd = commands.get(name);
 
     if (!cmd)
-      return message.reply(`❌ Command "${commandName}" not found.`);
+      return message.reply(`❌ Command "${name}" not found.`);
 
-    const flags = args.slice(1);
-    let replyText = `📄 Info for command: ${prefix}${cmd.config.name}\n\n`;
-
-    if (flags.includes("-u") || flags.includes("usage") || flags.includes("-g") || flags.includes("guide")) {
-      replyText += `📘 Guide:\n${cmd.config.guide.en.replace(/{pn}/g, prefix + cmd.config.name)}`;
-    } else if (flags.includes("-i") || flags.includes("info")) {
-      replyText += `ℹ️ Description: ${cmd.config.longDescription.en}`;
-    } else if (flags.includes("-r") || flags.includes("role")) {
-      replyText += `🔐 Role Required: ${cmd.config.role}`;
-    } else if (flags.includes("-a") || flags.includes("alias")) {
-      const aliasList = [...aliases.entries()]
-        .filter(([_, v]) => v === cmd.config.name)
-        .map(([k]) => k);
-      replyText += `🔁 Aliases: ${aliasList.join(", ") || "None"}`;
-    } else {
-      const aliasList = [...aliases.entries()]
-        .filter(([_, v]) => v === cmd.config.name)
-        .map(([k]) => k);
-
-      replyText += `ℹ️ Description: ${cmd.config.shortDescription.en}`
-        + `\n📘 Guide:\n${cmd.config.guide.en.replace(/{pn}/g, prefix + cmd.config.name)}`
-        + `\n🔐 Role Required: ${cmd.config.role}`
-        + `\n🔁 Aliases: ${aliasList.join(", ") || "None"}`
-        + `\n📂 Category: ${cmd.config.category}`;
-    }
+    let replyText =
+      `📌 Command: ${prefix}${cmd.config.name}\n\n`
+      + `ℹ️ Description: ${cmd.config.shortDescription.en}\n`
+      + `📘 Guide:\n${cmd.config.guide.en.replace(/{pn}/g, prefix + cmd.config.name)}\n`
+      + `🔐 Role Required: ${cmd.config.role}`;
 
     return message.reply(replyText);
   },
 
   onChat: async function ({ event, message, args }) {
-    // Enable NoPrefix usage
     if (args[0] && args[0].toLowerCase() === "help") {
       this.onStart({ args: args.slice(1), message, event });
     }
