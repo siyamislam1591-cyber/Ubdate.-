@@ -6,97 +6,106 @@ const moment = require('moment-timezone');
 module.exports = {
   config: {
     name: "uptime",
-    version: "3.9",
-    author: "Styled by nx (Cyber-Aesthetic Hybrid)",
+    version: "4.0",
+    author: "nx styled | fixed by ChatGPT",
     role: 0,
-    shortDescription: "Cyber aesthetic uptime display with loading",
-    longDescription: "Shows uptime, system, and bot stats with loading animation",
+    shortDescription: "Cyber aesthetic uptime display",
+    longDescription: "Shows uptime, system, and bot stats",
     category: "system",
     aliases: ["cyup", "cyberup", "statusx"],
   },
 
   onStart: async function ({ api, event }) {
     try {
-      // Function to simulate loading
+
+      // 🔥 Measure latency (actual bot send delay)
+      const startPing = Date.now();
+      await api.sendMessage("⏳ Checking system status...", event.threadID);
+      const latency = Date.now() - startPing;
+
+      // 🔥 Loading Animation (safe)
       const sendLoading = async () => {
-        for (let i = 22; i <= 100; i += 37) {
-          const loadingBar = "█".repeat(Math.floor(i / 10)) + "░".repeat(10 - Math.floor(i / 10));
-          const text = `🔄 Loading: [${loadingBar}] ${i}%`;
-          await api.sendMessage(text, event.threadID); // always send new message, safe for Messenger
-          await new Promise(resolve => setTimeout(resolve, 150)); // 150ms per step
+        for (let i = 22; i <= 100; i += 42) {
+          const bar = "█".repeat(Math.floor(i / 10)) + "░".repeat(10 - Math.floor(i / 10));
+          await api.sendMessage(`🔄 Loading: [${bar}] ${i}%`, event.threadID);
+          await new Promise(res => setTimeout(res, 1000));
         }
       };
 
       await sendLoading();
 
-      // Uptime & system info
+      // System uptime
       const uptime = process.uptime();
       const days = Math.floor(uptime / (3600 * 24));
       const hours = Math.floor((uptime % (3600 * 24)) / 3600);
       const minutes = Math.floor((uptime % 3600) / 60);
 
-      const totalMem = (os.totalmem() / (1024 ** 3)).toFixed(2);
-      const freeMem = (os.freemem() / (1024 ** 3)).toFixed(2);
+      // System info
+      const totalMem = (os.totalmem() / 1e9).toFixed(2);
+      const freeMem = (os.freemem() / 1e9).toFixed(2);
       const usedMem = (totalMem - freeMem).toFixed(2);
       const cpuModel = os.cpus()[0].model;
       const platform = os.platform();
       const arch = os.arch();
+      const cpuLoad = (process.cpuUsage().user / 1e6).toFixed(2);
+      const temp = Math.floor(Math.random() * 30) + 25;
 
-      const commandsPath = path.join(__dirname, "../cmds");
+      // Command count
       let totalCommands = 0;
+      const commandsPath = path.join(__dirname, "../cmds");
+
       if (fs.existsSync(commandsPath)) {
-        const files = fs.readdirSync(commandsPath).filter(f => f.endsWith(".js"));
-        totalCommands = files.length;
+        totalCommands = fs.readdirSync(commandsPath)
+          .filter(f => f.endsWith(".js")).length;
       } else if (global.GoatBot?.commands) {
         totalCommands = global.GoatBot.commands.size;
       }
 
-      const temp = Math.floor(Math.random() * 30) + 25;
-      const cpuLoad = (process.cpuUsage().user / 1000000).toFixed(2);
-      const signal = "█".repeat(10);
-
-      const bdTime = moment().tz("Asia/Dhaka");
+      // BD Time
+      const bd = moment().tz("Asia/Dhaka");
 
       const msg = `
 ═══════════════════════
-🟢 SYSTEM ONLINE // v3.9
-══════════════════
+🟢 SYSTEM ONLINE // v4.0
+═══════════════════════
+
 𝐂𝐨𝐫𝐞 𝐒𝐭𝐚𝐭𝐮𝐬
 ⏳ Uptime: ${days}d ${hours}h ${minutes}m
-⚡ Latency: ${Date.now() - (event.timestamp || Date.now())}ms
+⚡ Latency: ${latency}ms
 📦 Commands: ${totalCommands}
 ✅ Stability: Stable
+
 ────────────────────
-𝐒𝐲𝐬𝐭𝐞𝐦 𝐈𝐧𝐟𝐨𝐫𝐦𝐚𝐭𝐢𝐨𝐧
+𝐒𝐲𝐬𝐭𝐞𝐦 𝐈𝐧𝐟𝐨
 🪟 OS: ${platform.toUpperCase()} (${arch})
 🧠 CPU: ${cpuModel}
-💾 RAM: ${(process.memoryUsage().rss / (1024 * 1024)).toFixed(2)} MB
-🗄 Storage: ${usedMem}GB / ${totalMem}GB
+💾 RAM: ${usedMem}GB / ${totalMem}GB
 🛠 CPU Load: ${cpuLoad}%
+🌡 Temp: ${temp}°C
+
 ────────────────────
-𝐁𝐨𝐭 𝐈𝐧𝐠𝐢𝐧𝐞 𝐃𝐚𝐭𝐚
+𝐁𝐨𝐭 𝐃𝐚𝐭𝐚
 📂 Directory: ${path.basename(__dirname)}
 ⚙️ Node.js: ${process.version}
 🧩 PID: ${process.pid}
-📶 Signal: ${signal} 100%
-🌡 Temperature: ${temp}°C
-🔒 Network: Encrypted | AES-256 Secure
+📶 Signal: ██████████ 100%
+
 ────────────────────
-𝐎𝐰𝐧𝐞𝐫 𝐃𝐚𝐭𝐚
-👑 Name: Negative Xalman (nx)
-💬 Messenger: https://m.me/nx210.2.0.is.back
-───────────────────
-𝐓𝐢𝐦𝐞 𝐒𝐲𝐧𝐞 𝐁𝐚𝐧𝐠𝐥𝐚𝐝𝐞𝐬𝐡
-📅 Date: ${bdTime.format('dddd, MMMM Do YYYY')}
-🕒 Time: ${bdTime.format('hh:mm:ss A')} (Asia/Dhaka)
-─────────────────────
+𝐁𝐦𝐧𝐞𝐫 𝐃𝐚𝐭𝐚
+👑 Owner: Negative Xalman (nx)
+🔗 FB: m.me/nx210.2.0.is.back
+
+────────────────────
+📅 ${bd.format("dddd, MMMM Do YYYY")}
+🕒 ${bd.format("hh:mm:ss A")} (Asia/Dhaka)
+
 SYSTEM RUNNING // NO ERRORS DETECTED
 `;
 
       await api.sendMessage(msg, event.threadID);
+
     } catch (err) {
-      console.error("Uptime error:", err);
-      // ❌ Silent fail, kono message user ke dekhabe na
+      console.log("uptime error:", err);
     }
   }
 };
