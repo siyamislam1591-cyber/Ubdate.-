@@ -137,7 +137,7 @@ module.exports = (
 				}
 
 				// Unsend by reactions
-				const unsendReactions = ["😮", "😢", "😂", "😿", "😠", "😾", "😹"];
+				const unsendReactions = ["😮", "😢", "😆", "😂", "😿", "😠", "😾", "😹"];
 
 				if (unsendReactions.includes(event.reaction)) {
 					if (event.senderID == api.getCurrentUserID()) {
