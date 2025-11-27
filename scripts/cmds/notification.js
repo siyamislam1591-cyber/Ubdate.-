@@ -25,7 +25,7 @@ module.exports = {
       missingMessage: "Please enter a message or reply to a media file to send.",
       sendingNotification: "📢 Sending notification to %1 groups...",
       sentNotification: "✅ Successfully sent notification to %1 groups.",
-      errorSendingNotification: "⚠️ Error while sending to %1 groups:\n%2"
+      errorSendingNotification: " Error while sending to %1 groups:\n%2"
     }
   },
 
@@ -71,11 +71,11 @@ module.exports = {
 👤  From: ${senderName}
 🕒  Time: ${timeString} - ${dateString}
 
-────────────────────────────
+👇🏻
 ${msgText || "(media only)"}
 ────────────────────────────
 
-💌  𝐍𝐄𝐆𝐀𝐓𝐈𝐕𝐄 𝐁𝐎𝐓 𝐁𝐘 𝐍𝐗 💫`,
+💌`,
       attachment: streamAttachments
     };
 
