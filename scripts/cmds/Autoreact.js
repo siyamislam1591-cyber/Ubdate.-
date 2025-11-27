@@ -1,4 +1,4 @@
-module.exports = {
+ module.exports = {
   config: {
     name: "autoreact",
     version: "1.0",
