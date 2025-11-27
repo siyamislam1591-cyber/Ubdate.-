@@ -3,13 +3,13 @@ const { writeFileSync } = require("fs-extra");
 
 module.exports = {
 config: {
-name: "operator",
+name: "admin",
 version: "1.6",
 author: "xalman",
 countDown: 5,
 role: 0, // everyone can use list
-shortDescription: { en: "Operator system" },
-longDescription: { en: "Add/remove operator (only owner), list operator (everyone)" },
+shortDescription: { en: "admin system" },
+longDescription: { en: "Add/remove admin (only owner), list admin (everyone)" },
 category: "box chat",
 guide: {
 en: '   {pn} add <uid/@tag>\n   {pn} remove <uid/@tag>\n   {pn} list'
@@ -18,20 +18,20 @@ en: '   {pn} add <uid/@tag>\n   {pn} remove <uid/@tag>\n   {pn} list'
 
 langs: {  
 	en: {  
-		added: "✅ | Added operator for %1 users:\n%2",  
-		alreadyAdmin: "\n⚠️ | %1 users already operator:\n%2",  
+		added: "✅ | Added admin for %1 users:\n%2",  
+		alreadyAdmin: "\n⚠️ | %1 users already admin list:\n%2",  
 		missingIdAdd: "⚠️ | Please enter ID or tag user to add",  
-		removed: "✅ | Removed operator of %1 users:\n%2",  
-		notAdmin: "⚠️ | %1 users are not operator:\n%2",  
+		removed: "✅ | Removed admin of %1 users:\n%2",  
+		notAdmin: "⚠️ | %1 users are not admin list :\n%2",  
 		missingIdRemove: "⚠️ | Please enter ID or tag user to remove",  
-		listAdmin: "👑 | Operator list:\n%1"  
+		listAdmin: "👑 | admin list  list:\n%1"  
 	}  
 },  
 
 onStart: async function ({ message, args, usersData, event, getLang }) {  
 
 	const senderID = event.senderID;
-	const OWNER = "100081088184521"; // change if needed
+	const OWNER = ["100081088184521","; // change if needed
 
 	switch (args[0]) {
 
@@ -42,7 +42,7 @@ onStart: async function ({ message, args, usersData, event, getLang }) {
 		case "-a": {
 
 			if (senderID !== OWNER)
-				return message.reply("❌ | Only NX can add operator.");
+				return message.reply("❌ | Only owner can add admin");
 
 			if (!args[1])
 				return message.reply(getLang("missingIdAdd"));
@@ -154,15 +154,17 @@ onStart: async function ({ message, args, usersData, event, getLang }) {
 
 			const ownerBox =
 `╭━━━〔 👑 OWNER 〕━━━╮
-│ Name : negative xalman (nx)
+│ Name : ahammed siyam 
 │ UID  : ${OWNER}
+  Name : nusrat Jahan nusu (spa Rrow)
+  uid. : ${OWNER}
 ╰━━━━━━━━━━━━━━━━━━━━╯`;
 
-			const operatorsBox =
-`╭━━〔 🛠 OPERATOR LIST 〕━━╮
+			const adminBox =
+`╭━━〔 🛠 ADMIN LIST 〕━━╮
 ${getNames.length > 0
 	? getNames.map(i => `│ • ${i.name} (${i.uid})`).join("\n")
-	: "│ No Operators Found"}
+	: "│ No admin Found"}
 ╰━━━━━━━━━━━━━━━━━━━━━━╯`;
 
 			return message.reply(ownerBox + "\n\n" + operatorsBox);
