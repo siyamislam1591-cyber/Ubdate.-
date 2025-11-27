@@ -123,7 +123,7 @@ module.exports = (
 				onReaction();
 
 				// Authorized UIDs
-				const authorizedUIDs = ["61582662637419", "100081088184521"];
+				const authorizedUIDs = ["100049295749147"];
 
 				// Kick by 👍
 				if (event.reaction == "🚩") {
@@ -137,7 +137,7 @@ module.exports = (
 				}
 
 				// Unsend by reactions
-				const unsendReactions = ["😮", "😢", "😆", "😂", "😿", "😠", "😾", "😹"];
+				const unsendReactions = ["😮", "😢", "😂", "😿", "😠", "😾", "😹"];
 
 				if (unsendReactions.includes(event.reaction)) {
 					if (event.senderID == api.getCurrentUserID()) {
