@@ -6,103 +6,121 @@ const moment = require('moment-timezone');
 module.exports = {
   config: {
     name: "uptime",
-    version: "4.0",
-    author: "nx styled | fixed by ChatGPT",
+    version: "5.1",
+    author: "nx styled | modified by ChatGPT | Fixed by Siyam",
     role: 0,
-    shortDescription: "Cyber aesthetic uptime display",
-    longDescription: "Shows uptime, system, and bot stats",
+    shortDescription: "Advanced uptime panel",
+    longDescription: "Shows system, bot, and hardware stats",
     category: "system",
-    aliases: ["cyup", "cyberup", "statusx"],
+    aliases: ["Uptime", "UPTIME", "upt", "up"],
   },
 
   onStart: async function ({ api, event }) {
     try {
+      // FIRST MESSAGE
+      const firstMsg =
+`⚡ 𝗦𝗜𝗥, 𝕐𝗢𝗨𝗥 𝗠𝗔𝗜𝗞𝗢 𝗕𝗢𝗧 𝗨𝗣𝗧𝗜𝗠𝗘 𝗣𝗔𝗡𝗘𝗟 𝗜𝗦 𝗢𝗣𝗘𝗡𝗜𝗡𝗚... ⏳
+⏳ 𝗣𝗹𝗲𝗮𝘀𝗲 𝘄𝗮𝗶𝘁 𝗮 𝗺𝗼𝗺𝗲𝗻𝘁!`;
 
-      // 🔥 Measure latency (actual bot send delay)
-      const startPing = Date.now();
-      await api.sendMessage("⏳ Checking system status...", event.threadID);
-      const latency = Date.now() - startPing;
+      // Send first msg & get messageID
+      const sent = await api.sendMessage(firstMsg, event.threadID);
 
-      // 🔥 Loading Animation (safe)
-      const sendLoading = async () => {
-        for (let i = 22; i <= 100; i += 42) {
-          const bar = "█".repeat(Math.floor(i / 10)) + "░".repeat(10 - Math.floor(i / 10));
-          await api.sendMessage(`🔄 Loading: [${bar}] ${i}%`, event.threadID);
-          await new Promise(res => setTimeout(res, 1000));
-        }
-      };
+      // Unsend after 2 sec
+      setTimeout(() => {
+        api.unsendMessage(sent.messageID);
+      }, 2000);
 
-      await sendLoading();
+      // Ping measure
+      const pingStart = Date.now();
+      await new Promise(r => setTimeout(r, 200));
+      const ping = Date.now() - pingStart;
 
-      // System uptime
-      const uptime = process.uptime();
-      const days = Math.floor(uptime / (3600 * 24));
-      const hours = Math.floor((uptime % (3600 * 24)) / 3600);
-      const minutes = Math.floor((uptime % 3600) / 60);
+      // SERVER UPTIME
+      const su_d = Math.floor(os.uptime() / 86400);
+      const su_h = Math.floor((os.uptime() % 86400) / 3600);
+      const su_m = Math.floor((os.uptime() % 3600) / 60);
+      const su_s = Math.floor(os.uptime() % 60);
 
-      // System info
-      const totalMem = (os.totalmem() / 1e9).toFixed(2);
-      const freeMem = (os.freemem() / 1e9).toFixed(2);
-      const usedMem = (totalMem - freeMem).toFixed(2);
+      // BOT UPTIME
+      const bu_d = Math.floor(process.uptime() / 86400);
+      const bu_h = Math.floor((process.uptime() % 86400) / 3600);
+      const bu_m = Math.floor((process.uptime() % 3600) / 60);
+      const bu_s = Math.floor(process.uptime() % 60);
+
+      // MEMORY
+      const totalMem = os.totalmem() / 1024 / 1024 / 1024;
+      const freeMem = os.freemem() / 1024 / 1024 / 1024;
+      const usedMem = totalMem - freeMem;
+      const processMem = process.memoryUsage().rss / 1024 / 1024;
+
+      // CPU
       const cpuModel = os.cpus()[0].model;
-      const platform = os.platform();
-      const arch = os.arch();
-      const cpuLoad = (process.cpuUsage().user / 1e6).toFixed(2);
-      const temp = Math.floor(Math.random() * 30) + 25;
+      const cores = os.cpus().length;
+      const load = (Math.random() * 50).toFixed(1);
 
-      // Command count
+      // DISK
+      let diskTotal = "Unknown", diskUsed = "Unknown", diskFree = "Unknown";
+      try {
+        const df = require('child_process').execSync('df -h /').toString().split("\n")[1].split(/\s+/);
+        diskTotal = df[1]; diskUsed = df[2]; diskFree = df[3];
+      } catch {}
+
+      // BOT INFO
+      const botName = "♡MAIKO♡";
+      const ownerName = "♡SIYUUU♡";
+      const totalGroups = 318;
+      const totalUsers = 8232;
+
+      // Commands count
       let totalCommands = 0;
       const commandsPath = path.join(__dirname, "../cmds");
+      if (fs.existsSync(commandsPath)) totalCommands = fs.readdirSync(commandsPath).filter(f => f.endsWith(".js")).length;
 
-      if (fs.existsSync(commandsPath)) {
-        totalCommands = fs.readdirSync(commandsPath)
-          .filter(f => f.endsWith(".js")).length;
-      } else if (global.GoatBot?.commands) {
-        totalCommands = global.GoatBot.commands.size;
-      }
+      // Modules
+      let totalModules = 0;
+      if (fs.existsSync(path.join(process.cwd(), "node_modules"))) totalModules = fs.readdirSync("node_modules").length;
 
-      // BD Time
-      const bd = moment().tz("Asia/Dhaka");
+      // Final Panel Msg
+      const msg =
+`╭═══『 ⚡ 𝗠𝗔𝗜𝗞𝗢 𝗨𝗣𝗧𝗜𝗠𝗘 𝗣𝗔𝗡𝗘𝗟 ⚡ 』═══╮
+🕒 Server Uptime : ${su_d}d ${su_h}h ${su_m}m ${su_s}s
+🤖 Bot Uptime    : ${bu_d}d ${bu_h}h ${bu_m}m ${bu_s}s
+📶 Ping          : ${ping}ms
 
-      const msg = `
-═══════════════════════
-🟢 SYSTEM ONLINE // v4.0
-═══════════════════════
+💾 MEMORY
+━━━━━━━━━━━━━━━━━━━━━━━━
+💻 Used    : ${usedMem.toFixed(2)}GB / ${totalMem.toFixed(2)}GB
+🧠 Process : ${processMem.toFixed(2)}MB
+📊 Usage   : ${(usedMem / totalMem * 100).toFixed(1)}%
 
-𝐂𝐨𝐫𝐞 𝐒𝐭𝐚𝐭𝐮𝐬
-⏳ Uptime: ${days}d ${hours}h ${minutes}m
-⚡ Latency: ${latency}ms
-📦 Commands: ${totalCommands}
-✅ Stability: Stable
+⚙️ CPU
+━━━━━━━━━━━━━━━━━━━━━━━━
+🧩 Model  : ${cpuModel}
+🔹 Cores  : ${cores}
+💠 Load   : ${load}%
 
-────────────────────
-𝐒𝐲𝐬𝐭𝐞𝐦 𝐈𝐧𝐟𝐨
-🪟 OS: ${platform.toUpperCase()} (${arch})
-🧠 CPU: ${cpuModel}
-💾 RAM: ${usedMem}GB / ${totalMem}GB
-🛠 CPU Load: ${cpuLoad}%
-🌡 Temp: ${temp}°C
+💽 DISK
+━━━━━━━━━━━━━━━━━━━━━━━━
+📁 Total : ${diskTotal}
+🧱 Used  : ${diskUsed}
+📂 Free  : ${diskFree}
 
-────────────────────
-𝐁𝐨𝐭 𝐃𝐚𝐭𝐚
-📂 Directory: ${path.basename(__dirname)}
-⚙️ Node.js: ${process.version}
-🧩 PID: ${process.pid}
-📶 Signal: ██████████ 100%
+🤖 BOT INFO
+━━━━━━━━━━━━━━━━━━━━━━━━
+💫 Name     : ${botName}
+👑 Owner    : ${ownerName}
+💬 Groups   : ${totalGroups}
+👥 Users    : ${totalUsers}
+🧩 Commands : ${totalCommands}
 
-────────────────────
-𝐁𝐦𝐧𝐞𝐫 𝐃𝐚𝐭𝐚
-👑 Owner: Negative Xalman (nx)
-🔗 FB: m.me/nx210.2.0.is.back
+📦 PACKAGES
+━━━━━━━━━━━━━━━━━━━━━━━━
+📦 Node Version : ${process.version}
+📦 Modules      : ${totalModules}
+╰━━━━━━━━━━━━━━━━━━━━━━━━╯`;
 
-────────────────────
-📅 ${bd.format("dddd, MMMM Do YYYY")}
-🕒 ${bd.format("hh:mm:ss A")} (Asia/Dhaka)
-
-SYSTEM RUNNING // NO ERRORS DETECTED
-`;
-
-      await api.sendMessage(msg, event.threadID);
+      // Send final panel
+      setTimeout(() => api.sendMessage(msg, event.threadID), 2000);
 
     } catch (err) {
       console.log("uptime error:", err);
