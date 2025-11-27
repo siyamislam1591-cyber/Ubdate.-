@@ -3,175 +3,186 @@ const { writeFileSync } = require("fs-extra");
 
 module.exports = {
 config: {
-name: "admin",
-version: "1.6",
-author: "xalman",
-countDown: 5,
-role: 0, // everyone can use list
-shortDescription: { en: "admin system" },
-longDescription: { en: "Add/remove admin (only owner), list admin (everyone)" },
-category: "box chat",
-guide: {
-en: '   {pn} add <uid/@tag>\n   {pn} remove <uid/@tag>\n   {pn} list'
-}
+    name: "admin",
+    version: "2.0",
+    author: "xalman + updated by chatGPT",
+    countDown: 5,
+    role: 0,
+    shortDescription: { en: "admin system" },
+    longDescription: { en: "Add/remove admin (only owner), list admin (everyone)" },
+    category: "box chat",
+    guide: {
+        en: '{pn} add <uid/@tag>\n{pn} remove <uid/@tag>\n{pn} list'
+    }
 },
 
-langs: {  
-	en: {  
-		added: "✅ | Added admin for %1 users:\n%2",  
-		alreadyAdmin: "\n⚠️ | %1 users already admin list:\n%2",  
-		missingIdAdd: "⚠️ | Please enter ID or tag user to add",  
-		removed: "✅ | Removed admin of %1 users:\n%2",  
-		notAdmin: "⚠️ | %1 users are not admin list :\n%2",  
-		missingIdRemove: "⚠️ | Please enter ID or tag user to remove",  
-		listAdmin: "👑 | admin list  list:\n%1"  
-	}  
-},  
+langs: {
+    en: {
+        added: "✅ | Added admin for %1 users:\n%2",
+        alreadyAdmin: "\n⚠️ | %1 users already admin:\n%2",
+        missingIdAdd: "⚠️ | Please enter ID or tag user to add",
+        removed: "✅ | Removed admin for %1 users:\n%2",
+        notAdmin: "⚠️ | %1 users are not in admin list:\n%2",
+        missingIdRemove: "⚠️ | Please enter ID or tag user to remove",
+        listAdmin: "👑 | Admin list:\n%1"
+    }
+},
 
-onStart: async function ({ message, args, usersData, event, getLang }) {  
+onStart: async function ({ message, args, usersData, event, getLang }) {
+    
+    const senderID = event.senderID;
 
-	const senderID = event.senderID;
-	const OWNER = ["100081088184521","; // change if needed
+    // ===== OWNER UID only =====
+    const OWNER = "100049295749147"; 
 
-	switch (args[0]) {
+    switch (args[0]) {
 
-		// ======================================
-		//               ADD OPERATOR
-		// ======================================
-		case "add":
-		case "-a": {
+        // ==========================
+        //          ADD ADMIN
+        // ==========================
+        case "add":
+        case "-a": {
 
-			if (senderID !== OWNER)
-				return message.reply("❌ | Only owner can add admin");
+            if (senderID !== OWNER)
+                return message.reply("❌ | Only Owner can add admin.");
 
-			if (!args[1])
-				return message.reply(getLang("missingIdAdd"));
+            if (!args[1])
+                return message.reply(getLang("missingIdAdd"));
 
-			let uids = [];
-			if (Object.keys(event.mentions).length > 0)
-				uids = Object.keys(event.mentions);
-			else if (event.messageReply)
-				uids.push(event.messageReply.senderID);
-			else
-				uids = args.filter(arg => !isNaN(arg));
+            let uids = [];
+            if (Object.keys(event.mentions).length > 0)
+                uids = Object.keys(event.mentions);
+            else if (event.messageReply)
+                uids.push(event.messageReply.senderID);
+            else
+                uids = args.filter(arg => !isNaN(arg));
 
-			const notAdminIds = [];
-			const adminIds = [];
+            const notAdmin = [];
+            const already = [];
 
-			for (const uid of uids) {
-				if (config.adminBot.includes(uid))
-					adminIds.push(uid);
-				else
-					notAdminIds.push(uid);
-			}
+            for (const uid of uids) {
+                if (config.adminBot.includes(uid))
+                    already.push(uid);
+                else
+                    notAdmin.push(uid);
+            }
 
-			config.adminBot.push(...notAdminIds);
+            config.adminBot.push(...notAdmin);
 
-			const getNames = await Promise.all(
-				uids.map(uid => usersData.getName(uid).then(name => ({ uid, name })))
-			);
+            const names = await Promise.all(
+                uids.map(uid => 
+                    usersData.getName(uid).then(name => ({ uid, name }))
+                )
+            );
 
-			writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
+            writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
 
-			return message.reply(
-				(notAdminIds.length > 0 ? getLang(
-					"added",
-					notAdminIds.length,
-					getNames.filter(n => notAdminIds.includes(n.uid)).map(i => `• ${i.name} (${i.uid})`).join("\n")
-				) : "")
-				+ 
-				(adminIds.length > 0 ? getLang(
-					"alreadyAdmin",
-					adminIds.length,
-					adminIds.map(uid => `• ${uid}`).join("\n")
-				) : "")
-			);
-		}
+            return message.reply(
+                (notAdmin.length > 0 ? getLang(
+                    "added",
+                    notAdmin.length,
+                    names.filter(n => notAdmin.includes(n.uid))
+                         .map(i => `• ${i.name} (${i.uid})`).join("\n")
+                ) : "")
+                +
+                (already.length > 0 ? getLang(
+                    "alreadyAdmin",
+                    already.length,
+                    already.map(uid => `• ${uid}`).join("\n")
+                ) : "")
+            );
+        }
 
-		// ======================================
-		//             REMOVE OPERATOR
-		// ======================================
-		case "remove":
-		case "-r": {
+        // ==========================
+        //        REMOVE ADMIN
+        // ==========================
+        case "remove":
+        case "-r": {
 
-			if (senderID !== OWNER)
-				return message.reply("❌ | Only NX can remove operator.");
+            if (senderID !== OWNER)
+                return message.reply("❌ | Only Owner can remove admin.");
 
-			if (!args[1])
-				return message.reply(getLang("missingIdRemove"));
+            if (!args[1])
+                return message.reply(getLang("missingIdRemove"));
 
-			let uids = [];
-			if (Object.keys(event.mentions).length > 0)
-				uids = Object.keys(event.mentions);
-			else if (event.messageReply)
-				uids.push(event.messageReply.senderID);
-			else
-				uids = args.filter(arg => !isNaN(arg));
+            let uids = [];
+            if (Object.keys(event.mentions).length > 0)
+                uids = Object.keys(event.mentions);
+            else if (event.messageReply)
+                uids.push(event.messageReply.senderID);
+            else
+                uids = args.filter(arg => !isNaN(arg));
 
-			const notAdminIds = [];
-			const adminIds = [];
+            const adminIds = [];
+            const notAdmin = [];
 
-			for (const uid of uids) {
-				if (config.adminBot.includes(uid))
-					adminIds.push(uid);
-				else
-					notAdminIds.push(uid);
-			}
+            for (const uid of uids) {
+                if (config.adminBot.includes(uid))
+                    adminIds.push(uid);
+                else
+                    notAdmin.push(uid);
+            }
 
-			for (const uid of adminIds)
-				config.adminBot.splice(config.adminBot.indexOf(uid), 1);
+            for (const uid of adminIds)
+                config.adminBot.splice(config.adminBot.indexOf(uid), 1);
 
-			const getNames = await Promise.all(
-				adminIds.map(uid => usersData.getName(uid).then(name => ({ uid, name })))
-			);
+            const names = await Promise.all(
+                adminIds.map(uid =>
+                    usersData.getName(uid).then(name => ({ uid, name }))
+                )
+            );
 
-			writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
+            writeFileSync(global.client.dirConfig, JSON.stringify(config, null, 2));
 
-			return message.reply(
-				(adminIds.length > 0 ? getLang(
-					"removed",
-					adminIds.length,
-					getNames.map(i => `• ${i.name} (${i.uid})`).join("\n")
-				) : "")
-				+
-				(notAdminIds.length > 0 ? getLang(
-					"notAdmin",
-					notAdminIds.length,
-					notAdminIds.map(uid => `• ${uid}`).join("\n")
-				) : "")
-			);
-		}
+            return message.reply(
+                (adminIds.length > 0 ? getLang(
+                    "removed",
+                    adminIds.length,
+                    names.map(i => `• ${i.name} (${i.uid})`).join("\n")
+                ) : "")
+                +
+                (notAdmin.length > 0 ? getLang(
+                    "notAdmin",
+                    notAdmin.length,
+                    notAdmin.map(uid => `• ${uid}`).join("\n")
+                ) : "")
+            );
+        }
 
-		// ======================================
-		//               LIST OPERATORS
-		// ======================================
-		case "list":
-		case "-l": {
+        // ==========================
+        //          LIST ADMIN
+        // ==========================
+        case "list":
+        case "-l": {
 
-			const getNames = await Promise.all(
-				config.adminBot.map(uid => usersData.getName(uid).then(name => ({ uid, name })))
-			);
+            const names = await Promise.all(
+                config.adminBot.map(uid =>
+                    usersData.getName(uid).then(name => ({ uid, name }))
+                )
+            );
 
-			const ownerBox =
-`╭━━━〔 👑 OWNER 〕━━━╮
-│ Name : ahammed siyam 
-│ UID  : ${OWNER}
-  Name : nusrat Jahan nusu (spa Rrow)
-  uid. : ${OWNER}
-╰━━━━━━━━━━━━━━━━━━━━╯`;
+            const ownerList = `
+┏━━━━━━━━━━━━━━━━━━━━━━━┓
+┃       🧾 [ ALL ADMINS ]       ┃
+┗━━━━━━━━━━━━━━━━━━━━━━━┛
 
-			const adminBox =
-`╭━━〔 🛠 ADMIN LIST 〕━━╮
-${getNames.length > 0
-	? getNames.map(i => `│ • ${i.name} (${i.uid})`).join("\n")
-	: "│ No admin Found"}
-╰━━━━━━━━━━━━━━━━━━━━━━╯`;
+👑 𝗢𝗪𝗡𝗘𝗥(S):
+• Ahammed Siyam (100049295749147)
+• Spa Rrow (61576567185513)
 
-			return message.reply(ownerBox + "\n\n" + operatorsBox);
-		}
+💫 𝗔𝗗𝗠𝗜𝗡𝗦:
+${names.length > 0
+    ? names.map(i => `• ${i.name} (${i.uid})`).join("\n")
+    : "• No Admin Found"}
 
-		default:
-			return message.SyntaxError();
-	}
+━━━━━━━━━━━━━━━━━━━━━━━
+🔒 Only Owner can use → admin add / remove`;
+
+            return message.reply(ownerList);
+        }
+
+        default:
+            return message.SyntaxError();
+    }
 }
 };
