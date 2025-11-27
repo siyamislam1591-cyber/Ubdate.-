@@ -73,7 +73,7 @@ module.exports = {
         } catch (e) {}
       }
 
-      const msg = `📊 Bot Statistics\n\n👤 Total Users: ${usersCount}\n👥 Total Groups/Threads: ${groupsCount}\n\n owner : Negative Xalman (nx)`;
+      const msg = `📊 Bot Statistics\n\n👤 Total Users: ${usersCount}\n👥 Total Groups/Threads: ${groupsCount}\n\n owner : ahammed siyam (siyu)`;
       return api.sendMessage(msg, event.threadID, event.messageID);
 
     } catch (error) {
