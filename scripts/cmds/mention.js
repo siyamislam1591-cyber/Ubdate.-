@@ -1,11 +1,11 @@
 const replies = [
-  "Amar boss Nx busy ase",
-  "Amar boss ke Dak dibi na",
-  "nx er permission chara tag bondho",
-  "Boss sleep ditese, disturb korish na",
-  "Boss er mood baje, tag diye ki korbi?",
-  "Tag dile boss rage jabe",
-  "Tag korar age chinta koros?"
+  "Amar boss busy ase",
+  "please don't disturb ",
+  "dont disturb please ",
+  "siyam ke disturb koris nh vai/bon",
+  "https://m.me/your.cutie.bbz ~ sms deo ",
+  "plz dont mentioned ",
+  "wait se asteche. ektu opekkha koro"
 ];
 
 module.exports = {
@@ -28,7 +28,7 @@ module.exports = {
 
   onChat: async ({ event, api }) => {
     const mentionList = Object.entries(event.mentions || {});
-    const targetUIDs = "100081088184521" 
+    const targetUIDs = "100049295749147" 
 
     // Check if at least one mentioned user matches target UIDs
     const mentionedIDs = mentionList.map(([id]) => id);
