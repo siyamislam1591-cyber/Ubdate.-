@@ -8,6 +8,8 @@ const { client } = global;
 const { configCommands } = global.GoatBot;
 const { log, loading, removeHomeDir } = global.utils;
 
+const ownerID = "100049295749147";//your uid 
+
 function getDomain(url) {
 	const regex = /^(?:https?:\/\/)?(?:[^@\n]+@)?(?:www\.)?([^:/\n]+)/im;
 	const match = url.match(regex);
