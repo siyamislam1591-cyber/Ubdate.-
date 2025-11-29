@@ -1,183 +1,164 @@
+const Canvas = require("canvas");
+const fs = require("fs-extra");
+const path = require("path");
+
 module.exports = {
   config: {
     name: "bank",
-    version: "1.2",
-    description: "Deposit, withdraw, earn interest, loan system",
-    guide: {
-      vi: "",
-      en:
-        `💫 {pn}Bank Commands 💫\n\n💖 Bank - Show bank features\n💙 Bank balance - Show your balance\n💛 Bank deposit [amount] - Deposit money\n💜 Bank withdraw [amount] - Withdraw money\n✨ Bank interest - Earn double after 6h\n🌷 Bank loan - Take a 20k loan\n😇 Bank repay [amount] - Repay your loan\n😍 Bank top - Top 10 richest users`
-    },
-    category: "💰 Economy",
-    countDown: 1,
+    version: "2.1",
+    author: "Siyuu + Siyam (Fixed)",
     role: 0,
-    author: "〲T A N J I L ツ"
+    shortDescription: "Bank system",
+    category: "economy"
   },
 
-  onStart: async function ({ message, event, args, usersData, api, commandName }) {
-    const { MongoClient } = require("mongodb");
-    const uri = "mongodb+srv://tanjil4:tanjil4@cluster0.lqh9lyk.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
-    const client = new MongoClient(uri);
+  onStart: async function ({ message, args, event, usersData, api }) {
 
-    await client.connect();
-    const db = client.db("bankSystem");
-    const users = db.collection("users");
     const uid = event.senderID;
 
-    const action = args[0]?.toLowerCase();
-    const amount = parseInt(args[1]);
+    // ----- LOAD USER DATA -----
+    let user = await usersData.get(uid);
+    if (!user.data) user.data = {};
 
-    // Initialize user if not exists
-    const user = await users.findOneAndUpdate(
-      { uid },
-      { $setOnInsert: { balance: 0, loan: 0, lastInterest: Date.now() } },
-      { upsert: true, returnDocument: "after" }
-    );
+    let wallet = Number(user.money || 0);
+    let bank = Number(user.data.bank || 0); // store here (SAFE)
 
-    switch (action) {
-      case "balance": {
-        return message.reply(`💙 your bank balance: ${user.value.balance}  $✨`);
+    const action = args[0] ? args[0].toLowerCase() : "";
+    const amount = args[1] ? parseInt(args[1]) : 0;
+
+    // ---------- CANVAS CARD FUNCTION ----------
+    async function card(title, text, avatar, name) {
+      const w = 900, h = 500;
+      const canvas = Canvas.createCanvas(w, h);
+      const ctx = canvas.getContext("2d");
+
+      const grad = ctx.createLinearGradient(0,0,w,h);
+      grad.addColorStop(0,"#6a11cb");
+      grad.addColorStop(1,"#2575fc");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,w,h);
+
+      ctx.fillStyle = "rgba(255,255,255,0.15)";
+      ctx.roundRect(50,50,w-100,h-100,20);
+      ctx.fill();
+
+      if(avatar){
+        const img = await Canvas.loadImage(avatar);
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(120,120,80,0,Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(img,40,40,160,160);
+        ctx.restore();
       }
 
-      case "deposit": {
-        if (!amount || amount <= 0)
-          return message.reply("🌷 example: Bank deposit 100");
-        await users.updateOne({ uid }, { $inc: { balance: amount } });
-        return message.reply(`💖 Deposited ${amount} $ successfully!`);
-      }
+      ctx.fillStyle="#fff";
+      ctx.font="bold 50px Sans-serif";
+      ctx.fillText(title,250,120);
 
-      case "withdraw": {
-  if (!amount || amount <= 0) {
-    return message.reply("💖 Please enter a valid amount to withdraw. 🤗");
-  }
+      ctx.font="bold 40px Sans-serif";
+      ctx.fillText("Name: "+name,250,200);
 
-  const userData = user.value;
+      text.split("\n").forEach((l,i)=>{
+        ctx.fillText(l,250,260+i*55);
+      });
 
-  if (amount > userData.balance) {
-    return message.reply("🪽 Not enough balance in your bank! 😢");
-  }
+      ctx.font="20px Sans-serif";
+      ctx.fillText("siyuu",w-100,h-25);
 
-  // 
-  await users.updateOne({ uid }, { $inc: { balance: -amount } });
-
-  // usersData 
-  const currentMoney = await usersData.get(uid, "money") || 0;
-
-  // 
-  await usersData.set(uid, { money: currentMoney + amount });
-
-  return message.reply(`✅ You withdrew $${amount} successfully! 🎀`);
-}
-
-      case "interest": {
-  const cooldown = 6 * 60 * 60 * 1000; // 
-  const currentTime = Date.now();
-  const lastClaim = user.value.lastInterest || 0;
-  const elapsed = currentTime - lastClaim;
-
-  if (elapsed < cooldown) {
-    const remaining = cooldown - elapsed;
-    const hours = Math.floor(remaining / (60 * 60 * 1000));
-    const minutes = Math.floor((remaining % (60 * 60 * 1000)) / (60 * 1000));
-    const seconds = Math.floor((remaining % (60 * 1000)) / 1000);
-    return message.reply(`🕒 Please wait ${hours}h ${minutes}m ${seconds}s to claim interest again.`);
-  }
-
-  const earnedInterest = user.value.balance * 2;
-  await users.updateOne(
-    { uid },
-    {
-      $inc: { balance: earnedInterest },
-      $set: { lastInterest: currentTime }
+      const file = path.join(__dirname,"cache",`bank_${Date.now()}.png`);
+      await fs.ensureDir(path.join(__dirname,"cache"));
+      fs.writeFileSync(file,canvas.toBuffer());
+      return file;
     }
-  );
 
-  return message.reply(`💸 You've earned $${earnedInterest} interest! Your new balance is $${user.value.balance + earnedInterest}`);
-}
+    // ---- GET FB NAME + PROFILE ----
+    let fb = await api.getUserInfo(uid);
+    let name = fb[uid]?.name || "User";
+    let avatar = fb[uid]?.thumbSrc || "";
 
-      case "loan": {
-        if (user.value.loan > 0)
-          return message.reply("👀 You already have a loan. Repay first.");
-        await users.updateOne({ uid }, { $inc: { balance: 20000, loan: 20000 } });
-        return message.reply(
-          `😍 You received a loan of 20,000 $💸\n💫 Please repay within 3 days.`
-        );
-      }
+    // ---------- NO ARG = MENU ----------
+    if (!action) {
+      return message.reply(
+`🏦 Bank Menu
 
-      case "repay": {
-        if (!amount || amount <= 0)
-          return message.reply("💛 example: Bank repay 1000");
-        if (user.value.loan <= 0)
-          return message.reply("💙 You don’t have any active loans.");
-        if (user.value.balance < amount)
-          return message.reply("💫 Not enough balance to repay.");
-        const repayment = Math.min(amount, user.value.loan);
-        await users.updateOne(
-          { uid },
-          { $inc: { loan: -repayment, balance: -repayment } }
-        );
-        return message.reply(`💖 Repaid ${repayment} $ ✨. Remaining loan: ${user.value.loan - repayment} $✨`);
-      }
-
-       case "top": {
-  const topUsers = await users
-    .find({ balance: { $gt: 0 } })
-    .sort({ balance: -1 })
-    .limit(10)
-    .toArray();
-
-  if (topUsers.length === 0) {
-    return message.reply("😶 No top users found. 💭");
-  }
-
-  // 
-  function formatNumber(number) {
-    if (number >= 1e18) return (number / 1e18).toFixed(2) + "Qi";
-    if (number >= 1e15) return (number / 1e15).toFixed(2) + "Q";
-    if (number >= 1e12) return (number / 1e12).toFixed(2) + "T";
-    if (number >= 1e9) return (number / 1e9).toFixed(2) + "B";
-    if (number >= 1e6) return (number / 1e6).toFixed(2) + "M";
-    if (number >= 1e3) return (number / 1e3).toFixed(2) + "K";
-    return number.toString();
-  }
-
-  let topMsg = "👑 TOP 10 BANK USERS 👑\n✨━━━━━━━━━━━━━━━✨\n";
-
-  for (let i = 0; i < topUsers.length; i++) {
-    const user = topUsers[i];
-    const formattedBalance = formatNumber(user.balance);
-    try {
-      const userInfo = await api.getUserInfo(user.uid);
-      const name = userInfo[user.uid]?.name || "Unknown";
-      topMsg += `${i + 1}. ${name}\n   ➤ Balance: ${formattedBalance} ($${user.balance}) 💸\n`;
-    } catch (err) {
-      topMsg += `${i + 1}. Unknown User\n   ➤ Balance: ${formattedBalance} ($${user.balance}) 💸\n`;
+/bank balance  
+/bank deposit <amount>  
+/bank withdraw <amount>  
+/bank atm`
+      );
     }
-  }
 
-  return message.reply(topMsg.trim());
-}
-
-      default: {
-        return message.reply(
-          `
-✨ Bank System Menu ✨
-━━━━━━━━━━━━━━━━━━
-💖 balance 
-
-💙 deposit [amount]
-
-💛 withdraw [amount]
-
-💜 interest [2x]
-
-🌷 loan [only 20000]
-
-😇 repay [amount]
-
-😍 top [10 richest user]  `
-        );
-      }
+    // ---------- BALANCE ----------
+    if (action === "balance") {
+      const img = await card(
+        "Bank Balance",
+        `Bank: $${bank}\nWallet: $${wallet}`,
+        avatar, name
+      );
+      return message.reply({ attachment: fs.createReadStream(img) });
     }
+
+    // ---------- DEPOSIT ----------
+    if (action === "deposit") {
+      if (!amount || amount <= 0)
+        return message.reply("Enter valid deposit amount.");
+
+      if (wallet < amount)
+        return message.reply("❌ Deposit failed. Not enough wallet balance.");
+
+      wallet -= amount;
+      bank += amount;
+
+      // SAVE SAFELY
+      user.money = wallet;
+      user.data.bank = bank;
+      await usersData.set(uid, user);
+
+      const img = await card(
+        "Deposit Successful",
+        `Deposited: $${amount}\nBank: $${bank}\nWallet: $${wallet}`,
+        avatar, name
+      );
+
+      return message.reply({ attachment: fs.createReadStream(img) });
+    }
+
+    // ---------- WITHDRAW ----------
+    if (action === "withdraw") {
+      if (!amount || amount <= 0)
+        return message.reply("Enter valid withdraw amount.");
+
+      if (bank < amount)
+        return message.reply("❌ Withdrawal failed. Please check your bank balance.");
+
+      bank -= amount;
+      wallet += amount;
+
+      // SAVE SAFELY
+      user.money = wallet;
+      user.data.bank = bank;
+      await usersData.set(uid, user);
+
+      const img = await card(
+        "Withdraw Successful",
+        `Withdrawn: $${amount}\nBank: $${bank}\nWallet: $${wallet}`,
+        avatar, name
+      );
+
+      return message.reply({ attachment: fs.createReadStream(img) });
+    }
+
+    // ---------- ATM ----------
+    if (action === "atm") {
+      const img = await card(
+        "ATM CARD",
+        `Bank: $${bank}\nWallet: $${wallet}`,
+        avatar, name
+      );
+      return message.reply({ attachment: fs.createReadStream(img) });
+    }
+
+    return message.reply("Unknown argument.");
   }
 };
