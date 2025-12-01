@@ -82,15 +82,15 @@ module.exports = {
       ["busy", "⏳"], ["zope", "⏳"],
 
       // Banglish / English-Bangla
-      ["kemon aso", "🙂"], ["bhalo aso", "😎"], ["kharap lagse", "😢"], ["khushi lagse", "😄"],
-      ["mone hocche na", "🤔"], ["valo laglo", "😍"], ["kothay", "📍"], ["kaha", "📍"],
+      ["kemon aso", "🙂"], ["bhalo aso", "😎"], ["kharap", "😢"], ["khushi lagse", "😄"],
+      ["mone hocche na", "🤔"], ["valo laglo", "😍"], ["kothai", "📍"], ["siyam", "🥰"],
       ["khub valo", "👍"], ["tomar jonno", "💗"], ["amar sathe", "🤝"], ["dhonnobad", "🙏"],
       ["thik ache", "👌"], ["bhai", "👊"], ["bon", "👭"], ["shundor", "😍"],
       ["baje", "😠"], ["mone porlo", "💭"], ["bhoy lagse", "😨"], ["valo", "😊"],
-      ["pothik", "🧭"], ["khana khawa", "🍽️"], ["bhut", "👻"], ["vabna koro", "🤔"],
+      ["pothik", "🧭"], ["khaua khawa", "🍽️"], ["bhut", "👻"], ["vabo", "🤔"],
       ["chinta koro na", "😌"], ["hasi", "😂"], ["rudro", "😡"], ["prem", "💖"],
       ["mon kharap", "😞"], ["ajker din", "📅"], ["kal", "🗓️"], ["bikel", "🌇"],
-      ["sokal", "🌅"], ["rat", "🌃"], ["ghum", "😴"], ["khela", "⚽"],
+      ["sokal", "🌅"], ["nila", "😘"], ["ghum", "😴"], ["khela", "⚽"],
       ["sundor lagse", "😍"], ["ajke bhalo", "😊"], ["tomake miss korchi", "🥺"],
       ["amar sathe cholo", "🚶‍♂️"], ["valo thakbe", "💪"], ["shanti", "☮️"], ["gopon", "🤫"],
       ["shundor meye", "👸"], ["shundor chele", "🤴"], ["khusi", "😄"], ["dukkho", "😢"],
@@ -100,8 +100,8 @@ module.exports = {
       ["premer", "💌"], ["moner kotha", "💖"], ["shukh", "😊"], ["mone rakhbe", "📝"],
       ["ajker plan", "📅"], ["sundor jaiga", "🌴"], ["pahar", "⛰️"], ["nodi", "🌊"],
       ["ful", "🌸"], ["shopno dekho", "💤"], ["din valo", "☀️"], ["rat valo", "🌙"],
-      ["khela dhula", "⚽"], ["gan", "🎵"], ["nach", "💃"], ["majhe majhe", "😌"],
-      ["ekdom valo", "💯"], ["tumar sathe", "🤝"], ["dorkar nai", "❌"]
+      ["khela", "⚽"], ["gan", "🎵"], ["nach", "💃"], ["majhe", "😌"],
+      ["ekdom valo", "💯"], ["tumar sathe", "🤝"], [" nai", "❌"]
     ];
 
     // Check Default Triggers
