@@ -1,85 +1,117 @@
+const fs = require("fs");
+const path = __dirname + "/autoreact.json";
+
 module.exports = {
-    config: {
-        name: "zautoreact",
-		      version: "1.0",
-	       	author: "Loid Butter",
-		      countDown: 5,
-	       	role: 0,
-		      shortDescription: "",
-	       	longDescription: "",
-		       category: "dont know ",
-    },
-	onStart: async function (){},
-	onChat: async function ({ event ,api}) {
-		if (event.body.toLowerCase().indexOf("iloveyou") !== -1) return api.setMessageReaction("😙", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("good night") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("ily") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("ahammed siyam") !== -1) return api.setMessageReaction("😠", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("siyuu") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("siyam") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("😢") !== -1) return api.setMessageReaction("😢", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("😆") !== -1) return api.setMessageReaction("😆", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("😂") !== -1) return api.setMessageReaction("😆", event.messageID,event.threadID)
-		
-		if (event.body.toLowerCase().indexOf("🤣") !== -1) return api.setMessageReaction("😆", event.messageID,event.threadID)
-    
-   	if (event.body.toLowerCase().indexOf("ummmmmmmmmmmmmmmmmmmahhhhhhhhh") !== -1) return api.setMessageReaction("👅", event.messageID,event.threadID)
+  config: {
+    name: "autoreact",
+    version: "2.0",
+    author: "ChatGPT",
+    countDown: 0,
+    role: 0,
+    shortDescription: "Advanced auto-react + add your own triggers",
+    longDescription: "",
+    category: "utility"
+  },
 
-    if (event.body.toLowerCase().indexOf("bby") !== -1) return api.setMessageReaction("❤", event.messageID,event.threadID)
+  // Create storage file if not exists
+  onStart: async function () {
+    if (!fs.existsSync(path)) {
+      fs.writeFileSync(path, JSON.stringify({ triggers: {} }, null, 2));
+    }
+  },
 
-		if (event.body.toLowerCase().indexOf("baby") !== -1) return api.setMessageReaction("❤", event.messageID,event.threadID)
+  // User Commands
+  onCommand: async function ({ args, message }) {
+    const db = JSON.parse(fs.readFileSync(path));
 
-		if (event.body.toLowerCase().indexOf("nila") !== -1) return api.setMessageReaction("🥺", event.messageID,event.threadID)
+    if (args[0] === "add") {
+      const word = args[1];
+      const emoji = args[2];
 
-    		if (event.body.toLowerCase().indexOf("nilu") !== -1) return api.setMessageReaction("😅", event.messageID,event.threadID)
+      if (!word || !emoji) {
+        return message.reply("Use: autoreact add <text> <emoji>");
+      }
 
-        		if (event.body.toLowerCase().indexOf("kire") !== -1) return api.setMessageReaction("😳", event.messageID,event.threadID)
+      db.triggers[word.toLowerCase()] = emoji;
+      fs.writeFileSync(path, JSON.stringify(db, null, 2));
 
-        		if (event.body.toLowerCase().indexOf("friend") !== -1) return api.setMessageReaction("🫂", event.messageID,event.threadID)
+      return message.reply(`Added new trigger:\nText: **${word}**\nReact: ${emoji}`);
+    }
 
-        		if (event.body.toLowerCase().indexOf("hi") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
+    if (args[0] === "list") {
+      const list = Object.entries(db.triggers)
+        .map(([k, v]) => `${k} → ${v}`)
+        .join("\n");
 
-        		if (event.body.toLowerCase().indexOf("hello") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
+      return message.reply("🔥 Auto-react list:\n" + list);
+    }
 
-        		if (event.body.toLowerCase().indexOf("kiss") !== -1) return api.setMessageReaction("💋", event.messageID,event.threadID)
+    return message.reply("Commands:\n• autoreact add <text> <emoji>\n• autoreact list");
+  },
 
-    if (event.body.toLowerCase().indexOf("pregnant") !== -1) return api.setMessageReaction("🤰🏻", event.messageID,event.threadID)
+  // React System
+  onChat: async function ({ event, api }) {
+    if (!event.body) return;
+    const msg = event.body.toLowerCase();
 
-    if (event.body.toLowerCase().indexOf("ignore") !== -1) return api.setMessageReaction("😏", event.messageID,event.threadID)
+    // Load triggers
+    const db = JSON.parse(fs.readFileSync(path));
+    const custom = db.triggers;
 
-    if (event.body.toLowerCase().indexOf("😏") !== -1) return api.setMessageReaction("😏", event.messageID,event.threadID)
+    function react(e) {
+      return api.setMessageReaction(e, event.messageID, () => {}, true);
+    }
 
-    if (event.body.toLowerCase().indexOf("kharap") !== -1) return api.setMessageReaction("🤬", event.messageID,event.threadID)
+    // 🔥 DEFAULT REACTIONS (LARGE PACK + Banglish)
+    const defaults = [
+      ["hi", "💗"], ["hello", "💗"], ["hey", "💗"], ["gm", "💗"], ["gn", "💗"],
+      ["good morning", "💗"], ["good night", "💗"], ["good evening", "❤️"],
+      ["love you", "💗"], ["iloveyou", "💗"], ["i love you", "💗"],
+      ["miss you", "💗"], ["i miss you", "💗"], ["sorry", "😔"],
+      ["thanks", "😊"], ["thank you", "😊"], ["ty", "😊"],
+      ["lol", "😆"], ["lmao", "😆"], ["😂", "😆"], ["🤣", "😆"], ["😆", "😆"],
+      ["haha", "😆"], ["wtf", "🤨"], ["omg", "😮"], ["wow", "😮"],
+      ["sad", "😢"], ["😢", "😢"], ["😭", "😢"], ["heartbroken", "💔"],
+      ["😍", "😍"], ["😘", "😘"], ["🥺", "🥺"], ["😏", "😏"],
+      ["angry", "😡"], ["😡", "😡"], ["🤬", "🤬"], ["fuck", "🤬"], ["pakyu", "🤬"],
+      ["siyam", "🥺😉"], ["nila", "🍼"], ["kid", "👧"], ["nusu", "😘"],
+      ["nice", "👍"], ["good job", "👍"], ["perfect", "👍"],
+      ["bye", "👋"], ["goodbye", "👋"], ["brb", "👋"],
+      ["cute", "😊"], ["beautiful", "💗"], ["handsome", "😎"],
+      ["pogi", "😎"], ["ganda", "💗"],
+      ["busy", "⏳"], ["zope", "⏳"],
 
-    if (event.body.toLowerCase().indexOf("fuck you") !== -1) return api.setMessageReaction("🤬", event.messageID,event.threadID)
+      // Banglish / English-Bangla
+      ["kemon aso", "🙂"], ["bhalo aso", "😎"], ["kharap lagse", "😢"], ["khushi lagse", "😄"],
+      ["mone hocche na", "🤔"], ["valo laglo", "😍"], ["kothay", "📍"], ["kaha", "📍"],
+      ["khub valo", "👍"], ["tomar jonno", "💗"], ["amar sathe", "🤝"], ["dhonnobad", "🙏"],
+      ["thik ache", "👌"], ["bhai", "👊"], ["bon", "👭"], ["shundor", "😍"],
+      ["baje", "😠"], ["mone porlo", "💭"], ["bhoy lagse", "😨"], ["valo", "😊"],
+      ["pothik", "🧭"], ["khana khawa", "🍽️"], ["bhut", "👻"], ["vabna koro", "🤔"],
+      ["chinta koro na", "😌"], ["hasi", "😂"], ["rudro", "😡"], ["prem", "💖"],
+      ["mon kharap", "😞"], ["ajker din", "📅"], ["kal", "🗓️"], ["bikel", "🌇"],
+      ["sokal", "🌅"], ["rat", "🌃"], ["ghum", "😴"], ["khela", "⚽"],
+      ["sundor lagse", "😍"], ["ajke bhalo", "😊"], ["tomake miss korchi", "🥺"],
+      ["amar sathe cholo", "🚶‍♂️"], ["valo thakbe", "💪"], ["shanti", "☮️"], ["gopon", "🤫"],
+      ["shundor meye", "👸"], ["shundor chele", "🤴"], ["khusi", "😄"], ["dukkho", "😢"],
+      ["harate chai na", "😤"], ["jibon", "🌍"], ["bondhu", "👬"], ["poribar", "👨‍👩‍👧‍👦"],
+      ["kaj", "💼"], ["pora", "📚"], ["masti", "😜"], ["ghumay", "😴"], ["kotha bolo", "💬"],
+      ["haso", "😂"], ["bhoy", "😱"], ["dosti", "🤝"], ["shopno", "💭"], ["sundor ghum", "😴"],
+      ["premer", "💌"], ["moner kotha", "💖"], ["shukh", "😊"], ["mone rakhbe", "📝"],
+      ["ajker plan", "📅"], ["sundor jaiga", "🌴"], ["pahar", "⛰️"], ["nodi", "🌊"],
+      ["ful", "🌸"], ["shopno dekho", "💤"], ["din valo", "☀️"], ["rat valo", "🌙"],
+      ["khela dhula", "⚽"], ["gan", "🎵"], ["nach", "💃"], ["majhe majhe", "😌"],
+      ["ekdom valo", "💯"], ["tumar sathe", "🤝"], ["dorkar nai", "❌"]
+    ];
 
-    if (event.body.toLowerCase().indexOf("beda") !== -1) return api.setMessageReaction("👧", event.messageID,event.threadID)
+    // Check Default Triggers
+    for (const [text, emoji] of defaults) {
+      if (msg.includes(text)) return react(emoji);
+    }
 
-    if (event.body.toLowerCase().indexOf("nibba") !== -1) return api.setMessageReaction("👧", event.messageID,event.threadID)
-
-    if (event.body.toLowerCase().indexOf("i hate you") !== -1) return api.setMessageReaction("😞", event.messageID,event.threadID)
-  
-    if (event.body.toLowerCase().indexOf("useless") !== -1) return api.setMessageReaction("😓", event.messageID,event.threadID)
-
-    if (event.body.toLowerCase().indexOf("omg") !== -1) return api.setMessageReaction("😮", event.messageID,event.threadID)
-
-if (event.body.toLowerCase().indexOf("cringe") !== -1) return api.setMessageReaction("😏", event.messageID,event.threadID)
-
-if (event.body.toLowerCase().indexOf("gu") !== -1) return api.setMessageReaction("💩", event.messageID,event.threadID)
-
-    if (event.body.toLowerCase().indexOf("gaja") !== -1) return api.setMessageReaction("🍁", event.messageID,event.threadID)
-
-if (event.body.toLowerCase().indexOf("i miss you") !== -1) return api.setMessageReaction("💗", event.messageID,event.threadID)
-
-if (event.body.toLowerCase().indexOf("sad") !== -1) return api.setMessageReaction("😔", event.messageID,event.threadID)
-    
+    // Check Custom User-added Triggers
+    for (const text in custom) {
+      if (msg.includes(text)) return react(custom[text]);
+    }
   }
 };
