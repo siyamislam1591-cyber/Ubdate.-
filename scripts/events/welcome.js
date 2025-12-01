@@ -1,132 +1,112 @@
+// ===================[ WELCOME MODULE WITH AUTO IMAGE ]==================== //
+
+const axios = require("axios");
+const { createCanvas, loadImage, registerFont } = require("canvas");
 const { getTime, drive } = global.utils;
+
 if (!global.temp.welcomeEvent)
-	global.temp.welcomeEvent = {};
+    global.temp.welcomeEvent = {};
+
+// OPTIONAL magical font (if you have it)
+// registerFont(__dirname + "/fonts/magical.ttf", { family: "Magical" });
 
 module.exports = {
-	config: {
-		name: "welcome",
-		version: "1.7",
-		author: "Amit Max ",
-		category: "events"
-	},
+    config: {
+        name: "welcome",
+        version: "2.0",
+        author: "ChatGPT Modified",
+        category: "events"
+    },
 
-	langs: {
-		vi: {
-			session1: "sáng",
-			session2: "trưa",
-			session3: "chiều",
-			session4: "tối",
-			welcomeMessage: "Cảm ơn bạn đã mời tôi vào nhóm!\nPrefix bot: %1\nĐể xem danh sách lệnh hãy nhập: %1help",
-			multiple1: "bạn",
-			multiple2: "các bạn",
-			defaultWelcomeMessage: "Xin chào {userName}.\nChào mừng bạn đến với {boxName}.\nChúc bạn có buổi {session} vui vẻ!"
-		},
-		en: {
-			session1: "morning",
-			session2: "noon",
-			session3: "afternoon",
-			session4: "evening",
-			welcomeMessage: "☄️ ᴛʜᴀɴᴋ ʏᴏᴜ ꜰᴏʀ ɪɴᴠɪᴛɪɴɢ ᴍᴇ ᴛᴏ ᴛʜᴇ ɢʀᴏᴜᴘ!\n✨ ʙᴏᴛ ᴘʀᴇꜰɪx: %1\n🦋 ᴛᴏ ᴠɪᴇᴡ ᴛʜᴇ ʟɪꜱᴛ ᴏꜰ ᴄᴏᴍᴍᴀɴᴅ, ᴘʟᴇᴀꜱᴇ ᴇɴᴛᴇʀ: %1help",
-			multiple1: "you",
-			multiple2: "you guys",
-			defaultWelcomeMessage: ` ʜᴇʟʟᴏ, Dear {userName}.\n 🌷ᴡᴇʟᴄᴏᴍᴇ ᴛᴏ {multiple} {boxName}\n 😽ɪ ʜᴏᴘᴇ ʏᴏᴜ ᴡɪʟʟ ꜰᴏʟʟᴏᴡ ᴏᴜʀ ɢʀᴏᴜᴘ ʀᴜʟᴇꜱ ᴘʀᴏᴘᴇʀʟʏ. - ʜᴀᴠᴇ ᴀ ɴɪᴄᴇ {session}  -ꔫ 🌊👀✰`
-		}
-	},
+    // ===================[ IMAGE GENERATOR FUNCTION ]==================== //
 
-	onStart: async ({ threadsData, message, event, api, getLang }) => {
-		if (event.logMessageType == "log:subscribe")
-			return async function () {
-				const hours = getTime("HH");
-				const { threadID } = event;
-				const { nickNameBot } = global.GoatBot.config;
-				const prefix = global.utils.getPrefix(threadID);
-				const dataAddedParticipants = event.logMessageData.addedParticipants;
-				// if new member is bot
-				if (dataAddedParticipants.some((item) => item.userFbId == api.getCurrentUserID())) {
-					if (nickNameBot)
-						api.changeNickname(nickNameBot, threadID, api.getCurrentUserID());
-					return message.send(getLang("welcomeMessage", prefix));
-				}
-				// if new member:
-				if (!global.temp.welcomeEvent[threadID])
-					global.temp.welcomeEvent[threadID] = {
-						joinTimeout: null,
-						dataAddedParticipants: []
-					};
+    generateWelcomeCard: async function (name, uid) {
+        const width = 1400;
+        const height = 600;
 
-				// push new member to array
-				global.temp.welcomeEvent[threadID].dataAddedParticipants.push(...dataAddedParticipants);
-				// if timeout is set, clear it
-				clearTimeout(global.temp.welcomeEvent[threadID].joinTimeout);
+        const canvas = createCanvas(width, height);
+        const ctx = canvas.getContext("2d");
 
-				// set new timeout
-				global.temp.welcomeEvent[threadID].joinTimeout = setTimeout(async function () {
-					const threadData = await threadsData.get(threadID);
-					if (threadData.settings.sendWelcomeMessage == false)
-						return;
-					const dataAddedParticipants = global.temp.welcomeEvent[threadID].dataAddedParticipants;
-					const dataBanned = threadData.data.banned_ban || [];
-					const threadName = threadData.threadName;
-					const userName = [],
-						mentions = [];
-					let multiple = false;
+        // Background (Beautiful Horror + Cute Vibes)
+        const bg = await loadImage("https://files.catbox.moe/7hjbie.jpg");
+        ctx.drawImage(bg, 0, 0, width, height);
 
-					if (dataAddedParticipants.length > 1)
-						multiple = true;
+        // Cute magical glow layer
+        const glow = ctx.createRadialGradient(700, 300, 80, 700, 300, 700);
+        glow.addColorStop(0, "rgba(255, 160, 220, 0.45)");
+        glow.addColorStop(1, "rgba(0, 0, 0, 0.6)");
+        ctx.fillStyle = glow;
+        ctx.fillRect(0, 0, width, height);
 
-					for (const user of dataAddedParticipants) {
-						if (dataBanned.some((item) => item.id == user.userFbId))
-							continue;
-						userName.push(user.fullName);
-						mentions.push({
-							tag: user.fullName,
-							id: user.userFbId
-						});
-					}
-					// {userName}:   name of new member
-					// {multiple}:
-					// {boxName}:    name of group
-					// {threadName}: name of group
-					// {session}:    session of day
-					if (userName.length == 0) return;
-					let { welcomeMessage = getLang("defaultWelcomeMessage") } =
-						threadData.data;
-					const form = {
-						mentions: welcomeMessage.match(/\{userNameTag\}/g) ? mentions : null
-					};
-					welcomeMessage = welcomeMessage
-						.replace(/\{userName\}|\{userNameTag\}/g, userName.join(", "))
-						.replace(/\{boxName\}|\{threadName\}/g, threadName)
-						.replace(
-							/\{multiple\}/g,
-							multiple ? getLang("multiple2") : getLang("multiple1")
-						)
-						.replace(
-							/\{session\}/g,
-							hours <= 10
-								? getLang("session1")
-								: hours <= 12
-									? getLang("session2")
-									: hours <= 18
-										? getLang("session3")
-										: getLang("session4")
-						);
+        // User PFP
+        const pfp = `https://graph.facebook.com/${uid}/picture?width=720&height=720`;
+        const avatar = await loadImage(pfp);
 
-					form.body = welcomeMessage;
+        // Circle mask
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(300, 300, 180, 0, Math.PI * 2, true);
+        ctx.closePath();
+        ctx.clip();
+        ctx.drawImage(avatar, 120, 120, 360, 360);
+        ctx.restore();
 
-					if (threadData.data.welcomeAttachment) {
-						const files = threadData.data.welcomeAttachment;
-						const attachments = files.reduce((acc, file) => {
-							acc.push(drive.getFile(file, "stream"));
-							return acc;
-						}, []);
-						form.attachment = (await Promise.allSettled(attachments))
-							.filter(({ status }) => status == "fulfilled")
-							.map(({ value }) => value);
-					}
-					message.send(form);
-					delete global.temp.welcomeEvent[threadID];
-				}, 1500);
-			};
-	}
+        // "maiko" big magical title
+        ctx.font = "bold 110px Sans-Serif";
+        ctx.fillStyle = "#ff66cc";
+        ctx.shadowColor = "#ff00ff";
+        ctx.shadowBlur = 25;
+        ctx.fillText("maiko", 550, 200);
+
+        // Welcome name
+        ctx.shadowBlur = 0;
+        ctx.font = "bold 50px Sans-Serif";
+        ctx.fillStyle = "#ffffff";
+        ctx.fillText(`Welcome, ${name}!`, 550, 310);
+
+        ctx.font = "40px Sans-Serif";
+        ctx.fillStyle = "#ffcccc";
+        ctx.fillText(`We're happy to have you here 🌸`, 550, 380);
+
+        return canvas.toBuffer();
+    },
+
+    // ===================[ MAIN EVENT LISTENER ]==================== //
+
+    onStart: async function ({ threadsData, message, event, api }) {
+
+        if (event.logMessageType !== "log:subscribe") return;
+
+        return async () => {
+            const threadID = event.threadID;
+            const added = event.logMessageData.addedParticipants;
+
+            // If bot joined
+            if (added.some(u => u.userFbId == api.getCurrentUserID())) {
+                return message.send("✨ Bot Connected Successfully!\nUse /help");
+            }
+
+            // Handle members join
+            for (const user of added) {
+                const name = user.fullName;
+                const uid = user.userFbId;
+
+                // Generate image
+                const img = await module.exports.generateWelcomeCard(name, uid);
+
+                // Time
+                const time = getTime("HH:mm:ss");
+                const date = getTime("DD/MM/YYYY");
+
+                message.send({
+                    body:
+`👋 Hello ${name}
+🌸 Welcome to the group!
+⏳ Join Time: ${time}
+📅 Date: ${date}`,
+                    attachment: img
+                });
+            }
+        };
+    }
 };
