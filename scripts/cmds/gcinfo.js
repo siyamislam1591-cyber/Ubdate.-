@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 
 module.exports = {
   config: {
-    name: "gcinfo",
+    name: "spygc",
     aliases: [],
     version: "2.1",
     author: "〲T A N J I L ツ ",
