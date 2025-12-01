@@ -42,7 +42,7 @@ module.exports = {
           }
         } catch (e) {}
 
-        const msg = `👤 Name: ${name}\n🆔 UID: ${leftId}\n📤 vagse🙂👍🏻`;
+        const msg = ` ${name}\n left the group `;
         return api.sendMessage(msg, threadID);
       }
     } catch (err) {
