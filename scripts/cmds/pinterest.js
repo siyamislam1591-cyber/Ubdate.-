@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "pinterest",
     aliases: ["pin"],
-    version: "1.0",
+    version: "1.1",
     author: "nexo_here",
     countDown: 2,
     role: 0,
@@ -22,7 +22,7 @@ module.exports = {
     if (!query) return api.sendMessage("❗ Please provide a search keyword.\nExample: pinterest Naruto", event.threadID, event.messageID);
 
     try {
-      const count = 5;
+      const count = 15; // 15 ta image fetch korar jonno
       const url = `https://betadash-api-swordslush-production.up.railway.app/pinterest?search=${encodeURIComponent(query)}&count=${count}`;
       const res = await axios.get(url);
 
