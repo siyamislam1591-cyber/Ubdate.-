@@ -5,7 +5,7 @@ module.exports = {
     config: {
         name: "prefix",
         version: "1.5",
-        author: "NTKhang | Modified by ChatGPT",
+        author: "NTKhang | Modified by siyuuuu",
         countDown: 5,
         role: 0,
         description: "Change or view prefix",
@@ -29,7 +29,7 @@ module.exports = {
 `👋 𝐇𝐞𝐲 %1 𝐝𝐢𝐝 𝐲𝐨𝐮 𝐚𝐬𝐤 𝐟𝐨𝐫 𝐦𝐲 𝐩𝐫𝐞𝐟𝐢𝐱?
 ➥ 🌐 𝐆𝐥𝐨𝐛𝐚𝐥: %2
 ➥ 💬 𝐓𝐡𝐢𝐬 𝐂𝐡𝐚𝐭: %3
-𝐈'𝐦 %4, 𝐧𝐢𝐜𝐞 𝐭𝐨 𝐦𝐞𝐞𝐭 𝐲𝐨𝐮!`
+𝐈'𝐦 ‌♡𝗺𝗮𝗶𝗸𝗼♡ , 𝐧𝐢𝐜𝐞 𝐭𝐨 𝐦𝐞𝐞𝐭 𝐲𝐨𝐮!`
         }
     },
 
